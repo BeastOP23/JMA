@@ -1,0 +1,48 @@
+// Create a Google Pay payment request
+PaymentDataRequest request = PaymentDataRequest.newBuilder()
+    .setTransactionInfo(
+        TransactionInfo.newBuilder()
+            .setTotalPriceStatus(WalletConstants.TOTAL_PRICE_STATUS_FINAL)
+            .setTotalPrice(amount)
+            .setCurrencyCode(currency)
+            .build())
+    .setMerchantInfo(
+        MerchantInfo.newBuilder()
+            .setMerchantName(merchantName)
+            .build())
+    .build();
+
+// Use the payment request to create a payment data request
+AutoResolveHelper.resolveTask(
+    paymentsClient.loadPaymentData(request),
+    this, LOAD_PAYMENT_DATA_REQUEST_CODE);
+
+// Process the payment response obtained from Google Pay
+@Override
+public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
+
+    switch (requestCode) {
+        case LOAD_PAYMENT_DATA_REQUEST_CODE:
+            switch (resultCode) {
+                case Activity.RESULT_OK:
+                    PaymentData paymentData = PaymentData.getFromIntent(data);
+                    // Process the payment data to complete the payment
+                    break;
+                case Activity.RESULT_CANCELED:
+                    // Payment cancelled by the user
+                    break;
+                case AutoResolveHelper.RESULT_ERROR:
+                    Status status = AutoResolveHelper.getStatusFromIntent(data);
+                    // Handle payment processing error
+                    break;
+                default:
+                    // Unknown payment processing result
+                    break;
+            }
+            break;
+        default:
+            // Unknown request code
+            break;
+    }
+}
